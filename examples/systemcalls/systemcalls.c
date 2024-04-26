@@ -17,8 +17,7 @@ bool do_system(const char *cmd)
      *   or false() if it returned a failure
      */
 
-    int ret_val = system(cmd);
-    if (ret_val != 0)
+    if (system(cmd) != 0)
     {
         return false;
     }
@@ -66,29 +65,20 @@ bool do_exec(int count, ...)
      */
 
     va_end(args);
-    // Use FORK
+
     pid_t pid = fork();
-    if (pid == -1)
-    {
-        return false;
-    }
-
-    // Use EXECV
     int ret_val = execv(command[0], (char *const *)&(command[1]));
-    if (ret_val == -1)
-    {
-        return false;
-    }
-
     int status;
-    // WAIT
     waitpid(pid, &status, 0);
-    if (status == -1)
+
+    if (pid == -1 || ret_val == -1 || status == -1)
     {
         return false;
     }
-
-    return true;
+    else
+    {
+        return true;
+    }
 }
 
 /**
@@ -122,25 +112,19 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     va_end(args);
 
     int ret_val;
-    // OPEN the file
     int fd = open(outputfile, O_WRONLY | O_TRUNC | O_CREAT, 0644);
-    if (fd < 0)
-    {
-        return false;
-    }
-
-    // Use FORK
     pid_t pid = fork();
-    if (pid == -1)
+    ret_val = execv(command[0], (char *const *)&(command[1]));
+    int status;
+    waitpid(pid, &status, 0);
+
+    if (fd < 0 || pid == -1 || ret_val == -1 || status == -1)
     {
         return false;
     }
-
-    // Execv
-    ret_val = execv(command[0], (char *const *)&(command[1]));
-    if (ret_val == -1)
+    else
     {
-        return false;
+        return true;
     }
 
     // ret_val = execv(command[0], (char * const *)&(command[1]));
@@ -148,13 +132,4 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     //{
     //     return false;
     // }
-
-    int status;
-    waitpid(pid, &status, 0);
-    if (status == -1)
-    {
-        return false;
-    }
-
-    return true;
 }
