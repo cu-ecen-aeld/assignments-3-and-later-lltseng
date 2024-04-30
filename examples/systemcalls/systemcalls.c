@@ -21,8 +21,10 @@ bool do_system(const char *cmd)
     {
         return false;
     }
-
-    return true;
+    else
+    {
+        return true;
+    }
 }
 
 /**
